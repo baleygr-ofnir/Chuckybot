@@ -1,0 +1,9 @@
+﻿services:
+  chuckybot:
+    build:
+      context: ./Chuckybot
+      dockerfile: Dockerfile
+    container_name: chuckybot
+    restart: unless-stopped
+    environment:
+      - CHUCKYBOT_TOKEN=${CHUCKYBOT_TOKEN}
