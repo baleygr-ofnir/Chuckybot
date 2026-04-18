@@ -10,19 +10,21 @@ public class Joke : ApplicationCommandModule<ApplicationCommandContext>
     private static readonly string ApiUrl = "https://api.chucknorris.io/jokes";
         
     [SlashCommand("chucky", "Get a random joke")]
-    public async Task<string> GetJokeAsync(string? query)
+    public async Task<string> GetJokeAsync(string? query = null)
     {
         var random = new Random();
         try
         {
-            var response =
-                await HttpClient.GetFromJsonAsync<ChuckNorrisResponse>($"{ApiUrl}/random");
-
-            if (query is not null)
+            ChuckNorrisResponse response;    
+            if (query is null)
             {
-                
-                var responses = await HttpClient.GetFromJsonAsync<ChuckNorrisResponse[]>($"{ApiUrl}/search?query={query}");
-                response = responses[random.Next(responses.Length)];
+                response =
+                    await HttpClient.GetFromJsonAsync<ChuckNorrisResponse>($"{ApiUrl}/random");
+            }
+            else
+            {
+                var responses = await HttpClient.GetFromJsonAsync<List<ChuckNorrisResponse>>($"{ApiUrl}/search?query={query}");
+                response = responses?.Shuffle().FirstOrDefault();
             }
             
             return response?.Value ?? "Chuck Norris stared down the API, and it refused to return a joke.";
