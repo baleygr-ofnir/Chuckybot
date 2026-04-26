@@ -6,16 +6,15 @@ namespace Chuckybot;
 
 public class Joke : ApplicationCommandModule<ApplicationCommandContext>
 {
-    private static readonly HttpClient HttpClient = new ();
+    private static readonly HttpClient HttpClient = new();
     private static readonly string ApiUrl = "https://api.chucknorris.io/jokes";
         
     [SlashCommand("chucky", "Get a random joke")]
     public async Task<string> GetJokeAsync(string? query = null)
     {
-        var random = new Random();
         try
         {
-            ChuckNorrisResponse response;    
+            ChuckNorrisResponse? response = null;
             if (query is null)
             {
                 response =
@@ -23,8 +22,11 @@ public class Joke : ApplicationCommandModule<ApplicationCommandContext>
             }
             else
             {
-                var responses = await HttpClient.GetFromJsonAsync<List<ChuckNorrisResponse>>($"{ApiUrl}/search?query={query}");
-                response = responses?.Shuffle().FirstOrDefault();
+                var encodedQuery = Uri.EscapeDataString(query);
+                var responses = await HttpClient.GetFromJsonAsync<ChuckNorrisSearchResponse>($"{ApiUrl}/search?query={encodedQuery}");
+                
+                if (responses?.Result is { Count: > 0 })
+                    response = responses?.Result.Shuffle().FirstOrDefault();
             }
             
             return response?.Value ?? "Chuck Norris stared down the API, and it refused to return a joke.";
